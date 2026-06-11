@@ -11,3 +11,77 @@ generator client {
 datasource db {
   provider = "postgresql"
  }
+
+
+model User {
+  id          String   @id @default(uuid())
+
+  fullName    String
+  email       String   @unique
+  password    String
+
+  role        Role @default(USER)
+
+  createdEvents Event[]
+  rsvps         RSVP[]
+
+  createdAt   DateTime @default(now())
+}
+
+model Event {
+  id            String   @id @default(uuid())
+
+  title         String
+  description   String
+  summary       String
+
+  location      String
+  state         String
+  zipCode       String
+
+  eventDate     DateTime
+
+  startTime     String
+  endTime       String
+
+  coverImage    String
+
+  isFree        Boolean @default(true)
+  ticketPrice   Float?
+
+  viewsCount    Int @default(0)
+
+  approvalStatus ApprovalStatus @default(PENDING)
+
+  createdById   String
+  createdBy     User @relation(fields: [createdById], references: [id])
+
+  rsvps RSVP[]
+
+  createdAt DateTime @default(now())
+}
+
+model RSVP {
+  id        String @id @default(uuid())
+
+  userId    String
+  eventId   String
+
+  user      User @relation(fields: [userId], references: [id])
+  event     Event @relation(fields: [eventId], references: [id])
+
+  createdAt DateTime @default(now())
+
+  @@unique([userId, eventId])
+}
+
+enum Role {
+  USER
+  ADMIN
+}
+
+enum ApprovalStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
