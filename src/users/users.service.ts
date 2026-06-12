@@ -168,6 +168,9 @@ export class UsersService {
         VALUES (?, ?, ?, ?, ?, 'VALID', ?, ?)
       `, [ticketId, userId, dto.eventId, dto.ticketTypeId, new Date().toISOString(), qrCode, new Date().toISOString()]);
 
+      // Decrement available count
+      this.db.run('UPDATE TicketType SET available = MAX(0, available - 1) WHERE id = ?', [dto.ticketTypeId]);
+
       const t = this.db.get<any>(`
         SELECT t.*, e.id as eId, e.title as eTitle, e.description as eDesc, e.shortDescription as eShortDesc,
           e.category as eCat, e.date as eDate, e.time as eTime, e.endTime as eEndTime,
