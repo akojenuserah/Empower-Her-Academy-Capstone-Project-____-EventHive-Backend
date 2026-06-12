@@ -1,87 +1,105 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Get a free hosted Postgres database in seconds: `npx create-db`
-
 generator client {
   provider = "prisma-client"
   output   = "../generated/prisma"
 }
 
 datasource db {
-  provider = "postgresql"
- }
-
+  provider = "sqlite"
+}
 
 model User {
   id          String   @id @default(uuid())
-
   fullName    String
   email       String   @unique
   password    String
-
-  role        Role @default(USER)
+  avatar      String   @default("")
+  role        String   @default("ATTENDEE")
+  createdAt   DateTime @default(now())
 
   createdEvents Event[]
-  rsvps         RSVP[]
+  tickets       Ticket[]
+  savedEvents   SavedEvent[]
+}
 
-  createdAt   DateTime @default(now())
+model Category {
+  id    String @id @default(uuid())
+  name  String @unique
+  slug  String @unique
+  icon  String
+  color String
 }
 
 model Event {
-  id            String   @id @default(uuid())
+  id               String   @id @default(uuid())
+  title            String
+  description      String
+  shortDescription String
+  category         String
+  date             String
+  time             String
+  endTime          String?
+  location         String
+  address          String
+  city             String
+  price            Float    @default(0)
+  maxPrice         Float?
+  currency         String   @default("USD")
+  image            String
+  maxAttendees     Int      @default(100)
+  isFeatured       Boolean  @default(false)
+  tags             String   @default("[]")
+  isFree           Boolean  @default(false)
+  approvalStatus   String   @default("APPROVED")
+  viewsCount       Int      @default(0)
 
-  title         String
-  description   String
-  summary       String
+  organizerName     String  @default("")
+  organizerAvatar   String  @default("")
+  organizerVerified Boolean @default(true)
 
-  location      String
-  state         String
-  zipCode       String
+  createdById String
+  createdBy   User   @relation(fields: [createdById], references: [id])
 
-  eventDate     DateTime
-
-  startTime     String
-  endTime       String
-
-  coverImage    String
-
-  isFree        Boolean @default(true)
-  ticketPrice   Float?
-
-  viewsCount    Int @default(0)
-
-  approvalStatus ApprovalStatus @default(PENDING)
-
-  createdById   String
-  createdBy     User @relation(fields: [createdById], references: [id])
-
-  rsvps RSVP[]
+  tickets     Ticket[]
+  savedBy     SavedEvent[]
+  ticketTypes TicketType[]
 
   createdAt DateTime @default(now())
 }
 
-model RSVP {
-  id        String @id @default(uuid())
+model TicketType {
+  id          String @id @default(uuid())
+  eventId     String
+  event       Event  @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  name        String
+  price       Float
+  description String
+  available   Int
+  maxPerOrder Int    @default(10)
+  tickets     Ticket[]
+}
 
+model Ticket {
+  id           String     @id @default(uuid())
+  userId       String
+  user         User       @relation(fields: [userId], references: [id])
+  eventId      String
+  event        Event      @relation(fields: [eventId], references: [id])
+  ticketTypeId String
+  ticketType   TicketType @relation(fields: [ticketTypeId], references: [id])
+  purchaseDate DateTime   @default(now())
+  status       String     @default("VALID")
+  qrCode       String     @unique
+
+  createdAt DateTime @default(now())
+}
+
+model SavedEvent {
+  id        String   @id @default(uuid())
   userId    String
   eventId   String
-
-  user      User @relation(fields: [userId], references: [id])
-  event     Event @relation(fields: [eventId], references: [id])
-
+  user      User     @relation(fields: [userId], references: [id])
+  event     Event    @relation(fields: [eventId], references: [id])
   createdAt DateTime @default(now())
 
   @@unique([userId, eventId])
-}
-
-enum Role {
-  USER
-  ADMIN
-}
-
-enum ApprovalStatus {
-  PENDING
-  APPROVED
-  REJECTED
 }
