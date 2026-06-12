@@ -6,7 +6,13 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
   app.enableCors({
-    origin: ['http://localhost:5173', 'http://localhost:3001', 'http://localhost:8080', 'http://localhost:4173'],
+    origin: [
+      'http://localhost:5173',
+      'http://localhost:3001',
+      'http://localhost:8080',
+      'http://localhost:4173',
+      'https://empower-her-academy-capstone-projec.vercel.app',
+    ],
     credentials: true,
   });
 
